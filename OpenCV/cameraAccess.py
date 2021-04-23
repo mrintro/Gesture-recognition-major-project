@@ -13,15 +13,19 @@ pts = deque(maxlen=150)
 ptsx = deque(maxlen=150)
 ptsy = deque(maxlen=150)
 
-
+# blue color in HSV
 Lower_blue = np.array([110,50,50])
 Upper_blue = np.array([130,255,255])
+
+# Lower_blue = np.array([22, 93, 0])				#BGR
+# Upper_blue = np.array([45, 255, 255])
 
 onlyOnePhoto = 0
 counter = 0
 start = 0
 boxFrame = 0
 captured = 0									# if captured value = 0, it will write Captured on the frame
+flag2 = False
 hashListStart = [[0]*1000]*1000					# 2d array which tells program when to start recording the trail
 hashListStop = [[0]*1000]*1000					# 2d array which tells program when to stop recording the trail
 
@@ -81,55 +85,62 @@ while True:
 	else:
 		ptsx.appendleft(int(-1))
 		ptsy.appendleft(int(-1))
-
 	
-	for i in range (1,len(pts)):
-			
-		if pts[i-1]is None or pts[i] is None:
-			continue
-		if ptsx[i-1] == -1 or ptsx[i] == -1 or ptsy[i-1] == -1 or ptsy[i] == -1:
-			continue 
+	if flag2 == False:
 
-		isInside = 150 < pts[i][0] < 500 and 100 < pts[i][1] < 400
-
-		if(isInside):
-			if(start == 0):
-				hashListStart[ptsx[i]][ptsy[i]] += 1
-
-			# print(ptsx[i], ptsy[i])
-
-			if(hashListStart[ptsx[i]][ptsy[i]] > 150):
-				start = 1
-				hashListStart = [[0]*1000]*1000
-			
-			if(start == 1):
-				cv2.rectangle(img, (150,100), (500,400), color=(0, 128, 0), thickness=3)	# for changing rectangle box color to green
-				boxFrame = 1
-				thick = int(np.sqrt(len(pts) / float(i + 1)) * 2.5)
+		for i in range (1,len(pts)):
 				
-				cv2.line(img, pts[i-1] , pts[i] ,(0,0,225),thick)
-				cv2.line(blackImg,pts[i-1] , pts[i] ,(225,225,225),thick*2)
-				# print(i, ptsx[i], ptsy[i])
+			if pts[i-1]is None or pts[i] is None:
+				continue
+			if ptsx[i-1] == -1 or ptsx[i] == -1 or ptsy[i-1] == -1 or ptsy[i] == -1:
+				continue 
 
-				if(onlyOnePhoto == 0) :
+			isInside = 150 < pts[i][0] < 500 and 100 < pts[i][1] < 400
+
+			if(isInside):
+				if(start == 0):
+					hashListStart[ptsx[i]][ptsy[i]] += 1
+
+				# print(ptsx[i], ptsy[i])
+
+				if(hashListStart[ptsx[i]][ptsy[i]] > 150):
+					start = 1
+					hashListStart = [[0]*1000]*1000
+				
+				if(start == 1):
+					cv2.rectangle(img, (150,100), (500,400), color=(0, 128, 0), thickness=3)	# for changing rectangle box color to green
+					boxFrame = 1
+					thick = int(np.sqrt(len(pts) / float(i + 1)) * 2.5)
 					
-					hashListStop[ptsx[i]][ptsy[i]] += 1
+					cv2.line(img, pts[i-1] , pts[i] ,(0,0,225),thick)
+					if i>25:
+						cv2.line(blackImg,pts[i-26] , pts[i-25] ,(225,225,225),thick*2)
+					# cv2.line(blackImg,pts[i-1] , pts[i] ,(225,225,225),thick*2)
+					# print(i, ptsx[i], ptsy[i])
 
-					if(hashListStop[ptsx[i]][ptsy[i]] > 1000):
+					if(onlyOnePhoto == 0) :
 						
-						crop_img = blackImg[100:400, 150:500]
-						cv2.imwrite("Images/sample"+str(random.choice(dummyRange))+".jpg", crop_img)
-						print("Captured")
-						captured = 1
-						
-						
-						onlyOnePhoto = 1
-						boxFrame = 1
-						start = 0
-						hashListStop = [[0]*1000]*1000
+						hashListStop[ptsx[i]][ptsy[i]] += 1
+
+						if(hashListStop[ptsx[i]][ptsy[i]] > 1000):
+							
+							crop_img = blackImg[100:400, 150:500]
+
+							fileName = str(random.choice(dummyRange))
+							cv2.imwrite("Images/sample"+ fileName +".jpg", crop_img)
+							print("Captured" + fileName)
+							captured = 1
+							
+							
+							onlyOnePhoto = 1
+							boxFrame = 1
+							start = 0
+							hashListStop = [[0]*1000]*1000
+							flag2 = True
 			
 
-		
+	# if flag:
+	# 	break	
 	
 	cv2.imshow("Frame", img)
 	cv2.imshow("Frame2", blackImg)
@@ -137,9 +148,11 @@ while True:
 	# cv2.imshow("res",res)
 	
 	
+	
 	k=cv2.waitKey(30) & 0xFF
 	if k==32:
 		break
+
 
 # cleanup the camera and close any open windows
 cap.release()
