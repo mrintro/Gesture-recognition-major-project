@@ -3,6 +3,7 @@ import cv2
 import argparse
 from collections import deque
 import statistics
+import random
 
 
 
@@ -27,6 +28,9 @@ hashListStop = [[0]*1000]*1000					# 2d array which tells program when to stop r
 # font = cv2.FONT_HERSHEY_SIMPLEX
 # color = (255,0,0)
 # org = (50, 50)
+
+dummyRange = list(range(1,1000))
+
 
 
 
@@ -70,21 +74,29 @@ while True:
 	if captured:
 		cv2.putText(img, 'Captured', (50,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
 
-	if(x is not None and y is not None and x < 500 and y < 400):
+	if(x is not None and y is not None):
 		flag = 1
 		ptsx.appendleft(int(x))
 		ptsy.appendleft(int(y))
+	else:
+		ptsx.appendleft(int(-1))
+		ptsy.appendleft(int(-1))
+
 	
 	for i in range (1,len(pts)):
 			
 		if pts[i-1]is None or pts[i] is None:
 			continue
+		if ptsx[i-1] == -1 or ptsx[i] == -1 or ptsy[i-1] == -1 or ptsy[i] == -1:
+			continue 
 
 		isInside = 150 < pts[i][0] < 500 and 100 < pts[i][1] < 400
 
 		if(isInside):
 			if(start == 0):
 				hashListStart[ptsx[i]][ptsy[i]] += 1
+
+			# print(ptsx[i], ptsy[i])
 
 			if(hashListStart[ptsx[i]][ptsy[i]] > 150):
 				start = 1
@@ -106,7 +118,7 @@ while True:
 					if(hashListStop[ptsx[i]][ptsy[i]] > 1000):
 						
 						crop_img = blackImg[100:400, 150:500]
-						cv2.imwrite("Images/sample.jpg", crop_img)
+						cv2.imwrite("Images/sample"+str(random.choice(dummyRange))+".jpg", crop_img)
 						print("Captured")
 						captured = 1
 						
